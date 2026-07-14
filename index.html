@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Ventas de Feria · Mateflor</title>
+<meta name="description" content="Registra y cuadra las ventas de Mateflor en cada feria, sin internet.">
+<meta name="theme-color" content="#3C2C24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ventas Feria">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c-bg-outer:#E9DAC6;
+  --c-bg-app:#F5E9DA;
+  --c-text:#3C2C24;
+  --c-text-70:rgba(60,44,36,.7);
+  --c-text-65:rgba(60,44,36,.65);
+  --c-text-6:rgba(60,44,36,.6);
+  --c-green:#6B7A46;
+  --c-green-soft-bg:#eef3e1;
+  --c-green-soft-text:#546236;
+  --c-gold:#E7C75F;
+  --c-purple:#A28BB6;
+  --c-border:#D9D9D9;
+  --c-border-soft:#eadfcf;
+  --c-border-soft2:#e0d3bf;
+  --c-border-soft3:#d9cbb6;
+  --c-danger-border:#e3b7ab;
+  --c-danger-text:#a3402c;
+  --c-badge-efe-bg:#e8efd8;
+  --c-badge-efe-text:#546236;
+  --c-badge-tra-bg:#ece4f2;
+  --c-badge-tra-text:#5f4a7a;
+  --c-badge-cort-bg:#f7e7a8;
+  --c-badge-cort-text:#7a611a;
+  --f-serif:'Playfair Display',serif;
+  --f-sans:'Montserrat',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{font-family:var(--f-sans);background:var(--c-bg-outer);color:var(--c-text)}
+a{color:var(--c-green)}a:hover{color:var(--c-text)}
+input,select,textarea,button{font-family:inherit}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+button{-webkit-appearance:none;appearance:none}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#c9b79f;border-radius:8px}
+@keyframes mfpop{0%{transform:translateX(-50%) translateY(16px);opacity:0}100%{transform:translateX(-50%) translateY(0);opacity:1}}
+
+/* ---------- layout ---------- */
+.app-outer{min-height:100vh;display:flex;justify-content:center;background:var(--c-bg-outer)}
+.app-shell{width:100%;max-width:430px;min-height:100vh;background:var(--c-bg-app);position:relative;box-shadow:0 0 40px rgba(60,44,36,.18);display:flex;flex-direction:column}
+
+/* ---------- header ---------- */
+.mf-header{background:var(--c-text);color:var(--c-bg-app);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:11px;box-shadow:0 2px 12px rgba(60,44,36,.25)}
+.mf-header img{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--c-bg-app)}
+.mf-header-titles{flex:1;min-width:0}
+.mf-header-title{font-family:var(--f-serif);font-weight:700;font-size:18px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mf-header-sub{font-size:12px;opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mf-back{background:rgba(245,233,218,.15);border:none;color:var(--c-bg-app);border-radius:10px;padding:9px 13px;font-size:14px;font-weight:600;cursor:pointer;flex:0 0 auto}
+
+/* ---------- main ---------- */
+.mf-main{flex:1;padding:16px 16px 120px}
+.mf-section-title{font-family:var(--f-serif);font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--c-text-65);margin:6px 2px 10px;font-weight:700}
+
+/* ---------- cards ---------- */
+.mf-card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(60,44,36,.08)}
+.mf-card--pad18{border-radius:18px;padding:18px;box-shadow:0 2px 12px rgba(60,44,36,.1)}
+.mf-card--pad16{padding:16px}
+.mf-card--list{padding:4px 16px}
+.mf-card--list-loose{padding:6px 16px}
+.mf-card--center{text-align:center}
+
+.mf-hero-green{background:var(--c-green);color:#fff;border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 4px 16px rgba(60,44,36,.16)}
+.mf-hero-green--tight{padding:14px}
+.mf-hero-brown{background:var(--c-text);color:var(--c-bg-app);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 4px 16px rgba(60,44,36,.2)}
+
+.mf-stat-row{display:flex;gap:8px}
+.mf-stat-row--mt{margin-top:13px}
+.mf-stat-tile{flex:1;background:rgba(255,255,255,.16);border-radius:12px;padding:10px 6px;text-align:center}
+.mf-stat-num{font-family:var(--f-serif);font-size:19px;font-weight:700;line-height:1}
+.mf-stat-label{font-size:10px;opacity:.9;margin-top:4px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ---------- buttons ---------- */
+.mf-btn{width:100%;padding:16px;border:none;border-radius:15px;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(60,44,36,.15)}
+.mf-btn--green{background:var(--c-green);color:#fff}
+.mf-btn--gold{background:var(--c-gold);color:var(--c-text)}
+.mf-btn-outline{width:100%;padding:14px;border:2px solid var(--c-border-soft3);border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;background:#fff;color:var(--c-text)}
+
+/* ---------- lists ---------- */
+.mf-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--c-border-soft);cursor:pointer}
+.mf-row-icon{width:44px;height:44px;border-radius:12px;background:var(--c-purple);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex:0 0 auto}
+.mf-row-title{font-family:var(--f-serif);font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mf-row-sub{font-size:12.5px;color:var(--c-text-65)}
+.mf-row-amount{font-weight:700;font-size:15px}
+.mf-row-amount-label{font-size:11px;color:var(--c-text-6)}
+
+.mf-empty{text-align:center;padding:34px 20px;color:var(--c-text-65)}
+.mf-empty--big{padding:40px 20px}
+.mf-empty-emoji{font-size:50px}
+.mf-empty h3{font-family:var(--f-serif);color:var(--c-text);margin:8px 0 6px}
+.mf-empty p{font-size:14px;margin:0}
+.mf-empty-simple{color:var(--c-text-65);text-align:center;margin:6px 0;font-size:14px}
+
+/* ---------- badges ---------- */
+.mf-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px}
+.mf-badge--efe{background:var(--c-badge-efe-bg);color:var(--c-badge-efe-text)}
+.mf-badge--tra{background:var(--c-badge-tra-bg);color:var(--c-badge-tra-text)}
+.mf-badge--cort{background:var(--c-badge-cort-bg);color:var(--c-badge-cort-text)}
+
+/* ---------- forms ---------- */
+.mf-field{margin-bottom:15px}
+.mf-field label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+.mf-field label small{color:var(--c-text-6);font-weight:400}
+.mf-input{width:100%;padding:14px;border:2px solid var(--c-border);border-radius:12px;font-size:17px;background:#fff;color:var(--c-text)}
+.mf-field-help{color:var(--c-text-70);font-size:13px;margin-top:6px}
+
+/* ---------- sale rows ---------- */
+.mf-num-badge{width:40px;height:40px;border-radius:11px;flex:0 0 auto;background:var(--c-bg-app);color:var(--c-text);font-family:var(--f-serif);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:16px}
+.mf-venta-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--c-border-soft);cursor:pointer}
+.mf-venta-row--detail{align-items:flex-start}
+.mf-venta-meta{font-size:12.5px;color:var(--c-text-70);display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap}
+.mf-venta-lineas{font-size:12.5px;color:var(--c-text-70);margin-top:4px;line-height:1.5}
+
+/* ---------- cart ---------- */
+.mf-cart-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--c-border-soft)}
+.mf-cart-name{font-size:14px;font-weight:600;line-height:1.2}
+.mf-cart-price{font-size:12px;color:var(--c-text-70);margin-top:2px}
+.mf-cort-btn{font-size:11px;padding:7px 9px;border-radius:20px;border:2px solid var(--c-gold);font-weight:700;cursor:pointer;flex:0 0 auto;line-height:1;background:#fff;color:#7a611a}
+.mf-cort-btn.is-active{background:var(--c-gold)}
+.mf-stepper{display:flex;align-items:center;border:2px solid var(--c-border);border-radius:10px;overflow:hidden;flex:0 0 auto}
+.mf-stepper button{width:32px;height:34px;border:none;background:var(--c-bg-app);color:var(--c-text);font-size:19px;font-weight:700;cursor:pointer}
+.mf-stepper span{min-width:30px;text-align:center;font-weight:700;font-size:15px}
+.mf-cart-line{font-weight:700;font-size:14px;width:76px;text-align:right;flex:0 0 auto}
+
+.mf-total-bar{background:var(--c-gold);border-radius:13px;padding:13px 16px;margin-top:12px;display:flex;justify-content:space-between;align-items:center}
+.mf-total-bar span:first-child{font-weight:700;font-size:16px}
+.mf-total-bar span:last-child{font-family:var(--f-serif);font-weight:700;font-size:24px}
+.mf-total-bar--sm span:last-child{font-size:22px}
+
+/* ---------- medio de pago ---------- */
+.mf-medio-row{display:flex;gap:10px;margin-bottom:14px}
+.mf-medio-opt{flex:1;text-align:center;padding:15px 8px;border-radius:13px;font-weight:700;cursor:pointer;font-size:16px;border:2px solid var(--c-border);background:#fff;color:var(--c-text)}
+.mf-medio-opt span{font-size:22px;display:block;margin-bottom:3px}
+.mf-medio-opt.is-active{border-color:var(--c-green);background:var(--c-green-soft-bg);color:var(--c-green-soft-text)}
+
+/* ---------- product picker ---------- */
+.mf-prod-row{display:flex;align-items:center;gap:10px;padding:12px;border:2px solid var(--c-border);border-radius:12px;margin-bottom:8px;background:#fff;cursor:pointer}
+.mf-prod-name{font-size:14.5px;font-weight:600;line-height:1.2}
+.mf-prod-sku{font-size:11px;color:var(--c-text-65);margin-top:2px}
+.mf-prod-price{font-weight:700;font-size:14px;white-space:nowrap}
+.mf-prod-add{width:34px;height:34px;border-radius:9px;background:var(--c-green);color:#fff;border:none;font-size:22px;line-height:1;flex:0 0 auto;cursor:pointer}
+
+/* ---------- informe / detalle rows ---------- */
+.mf-kv-row{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--c-border-soft)}
+.mf-kv-row:last-child{border-bottom:none}
+.mf-kv-label{font-size:15px}
+.mf-kv-value{font-family:var(--f-serif);font-weight:700;font-size:17px}
+
+.mf-informe-total{font-family:var(--f-serif);font-size:34px;font-weight:800;text-align:center;padding:8px 0}
+.mf-informe-eyebrow{font-size:13px;opacity:.8}
+.mf-informe-caption{text-align:center;font-size:13px;opacity:.8}
+
+/* ---------- footer bar ---------- */
+.mf-footer{position:sticky;bottom:0;z-index:40;background:rgba(245,233,218,.97);backdrop-filter:blur(8px);border-top:1px solid var(--c-border-soft2);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px}
+.mf-footer button{border:none;border-radius:14px;font-weight:700;cursor:pointer}
+.mf-foot-primary{flex:2;padding:15px;font-size:17px;background:var(--c-green);color:#fff;box-shadow:0 3px 10px rgba(60,44,36,.15)}
+.mf-foot-secondary{flex:1;padding:15px;font-size:16px;background:var(--c-text);color:var(--c-bg-app)}
+.mf-foot-flex1{flex:1;padding:15px;font-size:15px}
+.mf-foot-outline{border:2px solid var(--c-border-soft3);background:#fff;color:var(--c-text)}
+.mf-foot-danger{flex:0 0 auto;padding:15px 16px;border:2px solid var(--c-danger-border);border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:#fff;color:var(--c-danger-text)}
+.mf-foot-save{flex:1;padding:15px;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;background:var(--c-gold);color:var(--c-text);box-shadow:0 3px 10px rgba(60,44,36,.15)}
+.mf-foot-save.is-disabled{opacity:.5}
+
+/* ---------- toast ---------- */
+.mf-toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));background:var(--c-text);color:var(--c-bg-app);padding:12px 22px;border-radius:30px;font-size:14px;font-weight:600;box-shadow:0 6px 22px rgba(60,44,36,.3);z-index:100;max-width:88%;text-align:center;animation:mfpop .25s ease;transform:translateX(-50%)}
+</style>
+</head>
+<body>
+<div class="app-outer">
+  <div class="app-shell">
+    <header class="mf-header" id="mf-header"></header>
+    <main class="mf-main" id="mf-main"></main>
+    <div id="mf-footer-slot"></div>
+    <div id="mf-toast-slot"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   DATOS
+   ============================================================ */
+var CATALOGO = [
+  {sku:"VAR418", nombre:"Medias tobilleras diseño gatico - paquete x 5", precio:20000},
+  {sku:"USA721B", nombre:"Churu bites x 3 piezas atún", precio:14000},
+  {sku:"VAR020", nombre:"Galletas control bola de pelos - 350 gr - Repuesto", precio:23000},
+  {sku:"VAR018", nombre:"Galletas control bola de pelos - 350 gr - Bombonera", precio:30000},
+  {sku:"USA733 IN", nombre:"Churu rolls x 4 piezas pollo - 40gr", precio:14000},
+  {sku:"USA732 IN", nombre:"Churu rolls x 4 piezas atún con vieiras - 40gr", precio:11000},
+  {sku:"USA731 IN", nombre:"Churu rolls x 4 piezas pollo con atún - 40gr", precio:11000},
+  {sku:"USA609A IN", nombre:"Churu x 4 piezas pollo y cangrejo 56gr", precio:15000},
+  {sku:"USA603A IN", nombre:"Churu x 4 piezas pollo 56gr", precio:15000},
+  {sku:"USA607B IN", nombre:"Churu x 4 piezas pollo y queso 56gr", precio:15000},
+  {sku:"VAR416", nombre:"Portavasos de gatico x 4 puestos", precio:20000},
+  {sku:"USA 626 IN", nombre:"Kit vitalidad gatuna x 21 - Sabores del mar 56gr", precio:68000},
+  {sku:"KIT0002", nombre:"Kit aventurero michi-explorador", precio:42000},
+  {sku:"KIT0003", nombre:"Kit dulzura gatuna", precio:43000},
+  {sku:"KIT0001", nombre:"Kit caprichitos", precio:45000},
+  {sku:"VAR413", nombre:'Túnel plegable grande en forma de "S"', precio:55000},
+  {sku:"VAR201", nombre:"Bolsa de catnip para gatos", precio:12000},
+  {sku:"715", nombre:"Rueda de goma para morder", precio:16000},
+  {sku:"335 PS", nombre:"Ramita de malla para morder", precio:26000},
+  {sku:"VAR200", nombre:"Ratoncito mini color surtido", precio:4000},
+  {sku:"VAR202", nombre:"Varita con pluma", precio:15000},
+  {sku:"VAR204", nombre:"Lanzapelotas silencioso", precio:20000},
+  {sku:"VAR207", nombre:"Túnel plegable grande", precio:50000},
+  {sku:"VAR206", nombre:"Túnel plegable mediano", precio:40000},
+  {sku:"VAR205", nombre:"Túnel plegable pequeño", precio:30000},
+  {sku:"VAR211", nombre:"Collar antiahogo para gato", precio:25000},
+  {sku:"VAR003", nombre:"Bolsa de maquillaje gaticos de colores", precio:20000},
+  {sku:"VAR403", nombre:"Medias taloneras diseño surtido", precio:10000},
+  {sku:"VAR402", nombre:"Medias tobilleras diseño surtido", precio:10000},
+  {sku:"VAR400", nombre:"Bolsa ecológica plegable de gaticos", precio:20000},
+  {sku:"VAR405", nombre:"Collar gatico desparramado", precio:12000},
+  {sku:"VAR404", nombre:"Separador de libros diseño surtido", precio:3000},
+  {sku:"VAR401", nombre:"Cuchara de café gatico", precio:15000},
+  {sku:"VAR411", nombre:"Casita de gatico en bloque", precio:30000},
+  {sku:"VAR407", nombre:"Figura de gatico mediano", precio:5000},
+  {sku:"VAR408", nombre:"Llavero de gatico", precio:3000},
+  {sku:"VAR410", nombre:"Figura de gatico en impresión 3D - Tamaño grande", precio:10000},
+  {sku:"VAR412", nombre:"Tapete antiansiedad para gatico", precio:15000},
+  {sku:"VAR210", nombre:"Cuchara para churu", precio:20000},
+  {sku:"USA723", nombre:"Churu bites x 3 pieza atún y salmón", precio:14000},
+  {sku:"USA722B IN", nombre:"Churu bites x 3 piezas atún con vieiras", precio:14000},
+  {sku:"USA724B IN", nombre:"Churu bites x 3 piezas pollo", precio:14000},
+  {sku:"USA602", nombre:"Churu x 4 piezas atún y pollo 56gr", precio:15000},
+  {sku:"USA606A IN", nombre:"Churu x 4 piezas atún y salmón 56gr", precio:15000},
+  {sku:"USA624 IN", nombre:"Kit vitalidad gatuna x 21 - Atún 56gr", precio:68000},
+  {sku:"USA627 IN", nombre:"Kit vitalidad gatuna x 21 - Pollo 56gr", precio:68000},
+  {sku:"VAR013", nombre:"Churu x 60 piezas variedad atún 56gr", precio:172000},
+  {sku:"USA681 IN", nombre:"Churu individual surtido variedad atún 14Gr", precio:3800},
+  {sku:"VAR012", nombre:"Galletas pollo 40gr", precio:5000},
+  {sku:"VAR011", nombre:"Galletas carne 40gr", precio:5000},
+  {sku:"VAR010", nombre:"Galletas salmón 40gr", precio:5000},
+  {sku:"VAR015", nombre:"Galletas play catnip 60gr", precio:12000},
+  {sku:"VAR016", nombre:"Galletas equilibrio 60gr", precio:12000},
+  {sku:"VAR017", nombre:"Galletas control bola de pelos - 60 gr", precio:12000},
+  {sku:"VAR006", nombre:"Gomitas Control de peso 100gr", precio:12000},
+  {sku:"VAR007", nombre:"Gomitas Cuidado renal 100gr", precio:12000},
+  {sku:"VAR008", nombre:"Gomitas Cuidado piel y pelaje 100gr", precio:12000},
+  {sku:"VAR009", nombre:"Gomitas inicio gatito 100gr", precio:12000},
+  {sku:"98953 TIK", nombre:"Paté de pollo y pato en caldo de pollo 80gr", precio:11500},
+  {sku:"98950 TIK", nombre:"Paté de pollo en caldo de pollo 80gr", precio:11500},
+  {sku:"11251 TIK", nombre:"Trocitos de pollo y pato en caldo 80gr", precio:11500},
+  {sku:"11250 TIK", nombre:"Trocitos de pollo y huevo de codorniz en caldo 80gr", precio:11500},
+  {sku:"11253 TIK", nombre:"Trocitos de pollo y carne en caldo 80gr", precio:11500},
+  {sku:"10936 TIK", nombre:"Trocitos de caballa y sardinas en sopa de calamar 80gr", precio:11500},
+  {sku:"10979 TIK", nombre:"Trocitos de atún y cangrejo en caldo 80gr", precio:11500},
+  {sku:"48026 TIK", nombre:"Mousse salmón cat baby 68gr", precio:11000},
+  {sku:"48093 TIK", nombre:"Paté de pollo y salmón para gatico 68gr", precio:11000},
+  {sku:"VAR019", nombre:"Kit de siembra hierba para gatos", precio:20000},
+  {sku:"98963 TIK", nombre:"Mousse pollo y pato en caldo de pollo 80 gr", precio:11000},
+  {sku:"98962 TIK", nombre:"Mousse pollo y carne en caldo de pollo 80gr", precio:11000},
+  {sku:"98960 TIK", nombre:"Mousse pollo en caldo de pollo 80gr", precio:11000},
+  {sku:"48009 TIK", nombre:"Mousse salmón en caldo 80gr", precio:11000},
+  {sku:"48007 TIK", nombre:"Mousse atún y caballa 80gr", precio:11000},
+  {sku:"11102 TIK", nombre:"Sopita de atún en caldo 37gr", precio:9000},
+  {sku:"11101 TIK", nombre:"Sopita de pollo en caldo - 37gr", precio:9000}
+];
+
+var LS_KEY = "mateflor_ventas_feria_v1";
+var NOMBRE_TIENDA = "Mateflor";
+var MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+var state = {
+  db: { ferias: [], activaId: null },
+  vista: "home",
+  ventaBorrador: null,
+  editandoVentaId: null,
+  feriaHistorialId: null,
+  nf: { fecha: "", lugar: "", base: "" },
+  prodSearch: "",
+  toastMsg: "",
+  toastShow: false
+};
+var toastTimer = null;
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function escapeHtml(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+function money(n){ n = Math.round(n || 0); return "$" + n.toLocaleString("es-CO"); }
+function hoyISO(){ var d = new Date(); var off = d.getTimezoneOffset(); return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10); }
+function fechaLinda(iso){
+  if (!iso) return "";
+  var parts = iso.split("-"); var y = parts[0], m = parts[1], dd = parts[2];
+  return parseInt(dd, 10) + " " + MESES[parseInt(m, 10) - 1] + " " + y;
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function loadDB(){
+  var db = { ferias: [], activaId: null };
+  try { var raw = localStorage.getItem(LS_KEY); if (raw) db = JSON.parse(raw); } catch (e) {}
+  return db;
+}
+function saveDB(db){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(db)); }
+  catch (e) { toast("⚠️ No se pudo guardar en el dispositivo"); }
+}
+
+function toast(msg){
+  state.toastMsg = msg; state.toastShow = true;
+  clearTimeout(toastTimer);
+  render();
+  toastTimer = setTimeout(function(){ state.toastShow = false; render(); }, 2200);
+}
+
+function feriaActiva(){
+  var db = state.db;
+  var f = null;
+  db.ferias.forEach(function(x){ if (x.id === db.activaId && x.estado === "abierta") f = x; });
+  return f;
+}
+function feriaPorId(id){
+  var f = null;
+  state.db.ferias.forEach(function(x){ if (x.id === id) f = x; });
+  return f;
+}
+function totalVenta(v){
+  return v.items.reduce(function(s, it){ return s + (it.cortesia ? 0 : it.precio) * it.cantidad; }, 0);
+}
+function totalesFeria(f){
+  var efectivo = 0, transferencia = 0, cortesias = 0, unidades = 0;
+  var transferencias = [];
+  f.ventas.forEach(function(v){
+    var t = totalVenta(v);
+    if (v.medio === "efectivo") efectivo += t;
+    else { transferencia += t; transferencias.push({ num: v.num, cliente: v.cliente, total: t }); }
+    v.items.forEach(function(it){ unidades += it.cantidad; if (it.cortesia) cortesias += it.cantidad; });
+  });
+  var base = f.base || 0;
+  return {
+    efectivo: efectivo, transferencia: transferencia, nVentas: f.ventas.length,
+    cortesias: cortesias, unidades: unidades, transferencias: transferencias,
+    base: base, efectivoEnCaja: base + efectivo, totalDia: efectivo + transferencia
+  };
+}
+
+function go(vista){ state.vista = vista; render(); window.scrollTo(0, 0); }
+
+/* ============================================================
+   ACCIONES
+   ============================================================ */
+function crearFeria(){
+  var nf = state.nf; var lugar = (nf.lugar || "").trim();
+  if (!lugar) { toast("Escribe el lugar de la feria"); return; }
+  var f = { id: uid(), fecha: nf.fecha || hoyISO(), lugar: lugar, base: parseFloat(nf.base) || 0, estado: "abierta", ventas: [], creada: Date.now() };
+  state.db.ferias.push(f);
+  state.db.activaId = f.id;
+  saveDB(state.db);
+  toast("✅ Feria abierta");
+  go("feria");
+}
+
+function nuevaVenta(){
+  state.editandoVentaId = null;
+  state.ventaBorrador = { cliente: "", items: [], medio: "efectivo" };
+  state.prodSearch = "";
+  state.vista = "nueva-venta";
+  render(); window.scrollTo(0, 0);
+}
+function editarVenta(id){
+  var f = feriaActiva(); var v = f && f.ventas.filter(function(x){ return x.id === id; })[0];
+  if (!v) return;
+  state.editandoVentaId = id;
+  state.ventaBorrador = { cliente: v.cliente, medio: v.medio, items: v.items.map(function(it){ return Object.assign({}, it); }) };
+  state.prodSearch = "";
+  state.vista = "nueva-venta";
+  render(); window.scrollTo(0, 0);
+}
+function agregarProducto(sku){
+  var p = CATALOGO.filter(function(x){ return x.sku === sku; })[0]; if (!p) return;
+  var b = state.ventaBorrador;
+  var ex = b.items.filter(function(it){ return it.sku === sku && !it.cortesia; })[0];
+  if (ex) ex.cantidad++;
+  else b.items.push({ sku: p.sku, nombre: p.nombre, precio: p.precio, cantidad: 1, cortesia: false });
+  toast("Agregado: " + p.nombre.slice(0, 26));
+}
+function cambiarQty(i, d){
+  var b = state.ventaBorrador;
+  b.items[i].cantidad += d;
+  if (b.items[i].cantidad <= 0) b.items.splice(i, 1);
+  render();
+}
+function toggleCortesia(i){
+  var b = state.ventaBorrador;
+  b.items[i].cortesia = !b.items[i].cortesia;
+  render();
+}
+function setMedio(m){ state.ventaBorrador.medio = m; render(); }
+
+function guardarVenta(){
+  var b = state.ventaBorrador;
+  if (!b || b.items.length === 0) { toast("Agrega al menos un producto"); return; }
+  var cliente = (b.cliente || "").trim();
+  if (b.medio === "transferencia" && !cliente) { toast("Pon el nombre del cliente para la transferencia"); return; }
+  var f = state.db.ferias.filter(function(x){ return x.id === state.db.activaId; })[0];
+  if (state.editandoVentaId) {
+    var v = f.ventas.filter(function(x){ return x.id === state.editandoVentaId; })[0];
+    v.cliente = cliente; v.medio = b.medio; v.items = b.items;
+    toast("✅ Venta actualizada");
+  } else {
+    f.ventas.push({ id: uid(), num: f.ventas.length + 1, cliente: cliente, medio: b.medio, items: b.items, ts: Date.now() });
+    toast("✅ Venta #" + f.ventas.length + " guardada");
+  }
+  saveDB(state.db);
+  state.ventaBorrador = null; state.editandoVentaId = null; state.vista = "feria";
+  render(); window.scrollTo(0, 0);
+}
+function borrarVenta(){
+  if (!state.editandoVentaId) return;
+  if (!confirm("¿Borrar esta venta? No se puede deshacer.")) return;
+  var f = state.db.ferias.filter(function(x){ return x.id === state.db.activaId; })[0];
+  f.ventas = f.ventas.filter(function(v){ return v.id !== state.editandoVentaId; })
+    .map(function(v, i){ v.num = i + 1; return v; });
+  saveDB(state.db);
+  state.ventaBorrador = null; state.editandoVentaId = null; state.vista = "feria";
+  toast("Venta borrada"); render(); window.scrollTo(0, 0);
+}
+function cerrarFeria(){
+  var f = feriaActiva(); if (!f) return;
+  if (f.ventas.length === 0) { if (!confirm("Esta feria no tiene ventas. ¿Cerrarla igual?")) return; }
+  else if (!confirm("¿Cerrar la feria? Quedará guardada en el histórico y no podrás agregar más ventas.")) return;
+  f.estado = "cerrada"; f.cerrada = Date.now();
+  state.db.activaId = null;
+  saveDB(state.db);
+  state.vista = "home";
+  toast("🔒 Feria cerrada y guardada"); render(); window.scrollTo(0, 0);
+}
+function verDetalle(id){ state.feriaHistorialId = id; state.vista = "detalle-feria"; render(); window.scrollTo(0, 0); }
+function goBack(){
+  var v = state.vista;
+  if (v === "nueva-feria") state.vista = "home";
+  else if (v === "feria") state.vista = "home";
+  else if (v === "nueva-venta") { state.vista = "feria"; state.ventaBorrador = null; state.editandoVentaId = null; }
+  else if (v === "informe") state.vista = "feria";
+  else if (v === "historial") state.vista = "home";
+  else if (v === "detalle-feria") { var f = feriaPorId(state.feriaHistorialId); state.vista = (f && f.estado === "cerrada") ? "historial" : "home"; }
+  else state.vista = "home";
+  render(); window.scrollTo(0, 0);
+}
+
+/* ---- export CSV ---- */
+function csvCell(s){ s = (s == null ? "" : String(s)); return '"' + s.replace(/"/g, '""') + '"'; }
+function filasFeria(f){
+  var rows = [];
+  f.ventas.forEach(function(v){
+    v.items.forEach(function(it){
+      rows.push([
+        f.fecha, f.lugar, v.num, v.cliente, it.sku, it.nombre, it.cantidad,
+        it.cortesia ? 0 : it.precio, (it.cortesia ? 0 : it.precio) * it.cantidad,
+        it.cortesia ? "Sí" : "No", v.medio === "efectivo" ? "Efectivo" : "Transferencia"
+      ]);
+    });
+  });
+  return rows;
+}
+function descargarCSV(nombre, filas){
+  var cab = ["Fecha", "Lugar", "N° Venta", "Cliente", "SKU", "Producto", "Cantidad", "Precio unit.", "Total línea", "Cortesía", "Medio de pago"];
+  var csv = "﻿" + [cab].concat(filas).map(function(r){ return r.map(csvCell).join(";"); }).join("\r\n");
+  var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a"); a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("⬇️ Archivo descargado");
+}
+function exportarFeria(id){
+  var f = feriaPorId(id); if (!f) return;
+  descargarCSV("Mateflor_" + f.fecha + "_" + (f.lugar || "feria").replace(/[^a-zA-Z0-9]/g, "-") + ".csv", filasFeria(f));
+}
+function exportarTodo(){
+  var filas = [];
+  state.db.ferias.filter(function(f){ return f.estado === "cerrada"; }).forEach(function(f){ filas = filas.concat(filasFeria(f)); });
+  if (filas.length === 0) { toast("No hay datos para exportar"); return; }
+  descargarCSV("Mateflor_historico_" + hoyISO() + ".csv", filas);
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function h(strings){ return strings; } // no-op tag placeholder (kept for readability)
+
+function renderHeader(){
+  var v = state.vista;
+  var title = "Ventas de Feria", sub = NOMBRE_TIENDA;
+  if (v === "nueva-feria") { title = "Abrir feria"; sub = "Datos del día"; }
+  else if (v === "feria") { var f = feriaActiva(); title = (f && f.lugar) || "Feria"; sub = f ? fechaLinda(f.fecha) : ""; }
+  else if (v === "nueva-venta") {
+    var fa = feriaActiva();
+    var num = state.editandoVentaId ? ((fa.ventas.filter(function(x){ return x.id === state.editandoVentaId; })[0]) || {}).num : (fa ? fa.ventas.length + 1 : 1);
+    title = (state.editandoVentaId ? "Editar" : "Nueva") + " venta #" + num; sub = (fa && fa.lugar) || "";
+  }
+  else if (v === "informe") { var fi = feriaActiva(); title = "Informe del día"; sub = (fi && fi.lugar) || ""; }
+  else if (v === "historial") { title = "Histórico"; sub = "Todas tus ferias"; }
+  else if (v === "detalle-feria") { var fd = feriaPorId(state.feriaHistorialId); title = (fd && fd.lugar) || "Feria"; sub = fd ? fechaLinda(fd.fecha) : ""; }
+
+  var backBtn = v !== "home" ? '<button class="mf-back" data-action="back">‹ Volver</button>' : "";
+  return (
+    '<img src="./assets/logo-mateflor.png" alt="' + NOMBRE_TIENDA + '">' +
+    '<div class="mf-header-titles">' +
+      '<div class="mf-header-title">' + escapeHtml(title) + '</div>' +
+      '<div class="mf-header-sub">' + escapeHtml(sub) + '</div>' +
+    '</div>' + backBtn
+  );
+}
+
+function statRow(items, extraClass){
+  return '<div class="mf-stat-row' + (extraClass ? ' ' + extraClass : '') + '">' + items.map(function(it){
+    return '<div class="mf-stat-tile"><div class="mf-stat-num">' + escapeHtml(it.num) + '</div><div class="mf-stat-label">' + escapeHtml(it.label) + '</div></div>';
+  }).join("") + '</div>';
+}
+
+function renderHome(){
+  var out = "";
+  var activa = feriaActiva();
+  if (activa) {
+    var t = totalesFeria(activa);
+    out += '<div class="mf-hero-green">' +
+      '<div style="font-family:var(--f-serif);font-size:20px;line-height:1.15">📍 ' + escapeHtml(activa.lugar || "Feria") + '</div>' +
+      '<div style="font-size:12.5px;opacity:.9;margin-top:2px">' + escapeHtml(fechaLinda(activa.fecha) + " · Base " + money(activa.base)) + '</div>' +
+      statRow([
+        { num: t.nVentas, label: "Ventas" },
+        { num: money(t.efectivo), label: "Efectivo" },
+        { num: money(t.transferencia), label: "Transfer." }
+      ], "mf-stat-row--mt") +
+      '</div>' +
+      '<button class="mf-btn mf-btn--green" data-action="seguir-vendiendo">Seguir vendiendo →</button>' +
+      '<div style="height:14px"></div>';
+  } else {
+    out += '<div class="mf-card mf-card--pad18 mf-card--center">' +
+      '<div style="font-size:44px;line-height:1">🐾</div>' +
+      '<h2 style="font-family:var(--f-serif);font-size:22px;margin:8px 0 6px">¡Hola, Angélica!</h2>' +
+      '<p style="color:var(--c-text-70);font-size:14.5px;margin:0 0 16px;line-height:1.5">Abre una feria para empezar a registrar las ventas del día.</p>' +
+      '<button class="mf-btn mf-btn--gold" data-action="abrir-feria">＋ Abrir nueva feria</button>' +
+      '</div>';
+  }
+
+  out += '<div class="mf-section-title">Historial de ferias</div>';
+  var cerradas = state.db.ferias.filter(function(f){ return f.estado === "cerrada"; });
+  if (cerradas.length === 0) {
+    out += '<div class="mf-card mf-card--pad18 mf-card--center" style="color:var(--c-text-65);font-size:14px">Aún no has cerrado ninguna feria.</div>';
+  } else {
+    var rows = cerradas.slice().reverse().slice(0, 4);
+    out += '<div class="mf-card mf-card--list-loose" style="margin-bottom:12px">' + rows.map(function(f){
+      var t = totalesFeria(f);
+      return '<div class="mf-row" data-action="ver-detalle" data-id="' + f.id + '">' +
+        '<div class="mf-row-icon">🎪</div>' +
+        '<div style="flex:1;min-width:0"><div class="mf-row-title">' + escapeHtml(f.lugar || "Feria") + '</div><div class="mf-row-sub">' + escapeHtml(fechaLinda(f.fecha) + " · " + t.nVentas + " ventas") + '</div></div>' +
+        '<div style="text-align:right;flex:0 0 auto"><div class="mf-row-amount">' + money(t.totalDia) + '</div><div class="mf-row-amount-label">total del día</div></div>' +
+      '</div>';
+    }).join("") + '</div>';
+    if (cerradas.length > 4) {
+      out += '<button class="mf-btn-outline" data-action="ver-historial">Ver histórico completo (' + cerradas.length + ')</button>';
+    }
+  }
+  return out;
+}
+
+function renderNuevaFeria(){
+  var nf = state.nf;
+  return '<div class="mf-card mf-card--pad18">' +
+    '<div class="mf-field"><label>Fecha de la feria</label>' +
+      '<input class="mf-input" id="inp-nf-fecha" type="date" data-bind="nf-fecha" value="' + escapeHtml(nf.fecha) + '"></div>' +
+    '<div class="mf-field"><label>Lugar</label>' +
+      '<input class="mf-input" id="inp-nf-lugar" type="text" data-bind="nf-lugar" value="' + escapeHtml(nf.lugar) + '" placeholder="Ej: Parque de la 93, Bogotá" autocomplete="off"></div>' +
+    '<div class="mf-field"><label>Base de caja inicial (efectivo)</label>' +
+      '<input class="mf-input" id="inp-nf-base" type="number" inputmode="numeric" data-bind="nf-base" value="' + escapeHtml(nf.base) + '" placeholder="Ej: 100000">' +
+      '<div class="mf-field-help">El efectivo con el que arrancas la caja para dar cambio.</div></div>' +
+    '<button class="mf-btn mf-btn--gold" data-action="crear-feria">Abrir feria y empezar →</button>' +
+  '</div>';
+}
+
+function renderFeria(){
+  var f = feriaActiva();
+  var out = "";
+  if (f) {
+    var t = totalesFeria(f);
+    out += '<div class="mf-hero-green mf-hero-green--tight">' +
+      statRow([
+        { num: t.nVentas, label: "Ventas" },
+        { num: money(t.efectivo), label: "Efectivo" },
+        { num: money(t.transferencia), label: "Transfer." }
+      ]) + '</div>';
+    out += '<div class="mf-section-title">Ventas del día</div>';
+    if (f.ventas.length === 0) {
+      out += '<div class="mf-empty"><div class="mf-empty-emoji">🛒</div><h3>Todavía no hay ventas</h3><p>Toca el botón de abajo para registrar la primera.</p></div>';
+    } else {
+      var rows = f.ventas.slice().reverse();
+      out += '<div class="mf-card mf-card--list">' + rows.map(function(vt){
+        var tv = totalVenta(vt);
+        var nprod = vt.items.reduce(function(s, it){ return s + it.cantidad; }, 0);
+        var cort = vt.items.some(function(it){ return it.cortesia; });
+        var badges = "";
+        if (vt.medio === "efectivo") badges += '<span class="mf-badge mf-badge--efe">Efectivo</span>';
+        else badges += '<span class="mf-badge mf-badge--tra">Transfer.</span>';
+        if (cort) badges += '<span class="mf-badge mf-badge--cort">🎁 Cortesía</span>';
+        return '<div class="mf-venta-row" data-action="editar-venta" data-id="' + vt.id + '">' +
+          '<div class="mf-num-badge">' + vt.num + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(vt.cliente || "Sin nombre") + '</div>' +
+            '<div class="mf-venta-meta"><span>' + nprod + ' prod.</span>' + badges + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex:0 0 auto"><div class="mf-row-amount">' + money(tv) + '</div></div>' +
+        '</div>';
+      }).join("") + '</div>';
+    }
+  }
+  return out;
+}
+
+function renderNuevaVenta(){
+  var b = state.ventaBorrador || { cliente: "", items: [], medio: "efectivo" };
+  var out = '<div class="mf-card mf-card--pad16" style="margin-bottom:14px">' +
+    '<label style="display:block;font-weight:600;font-size:14px;margin:0 0 6px">Nombre del cliente <span style="color:var(--c-text-6);font-weight:400">(para validar transferencias)</span></label>' +
+    '<input class="mf-input" id="inp-nv-cliente" type="text" data-bind="nv-cliente" value="' + escapeHtml(b.cliente) + '" placeholder="Nombre y apellido" autocomplete="off">' +
+  '</div>';
+
+  out += '<div class="mf-section-title">Productos de esta venta</div>';
+  out += '<div class="mf-card mf-card--pad16" style="padding:14px 16px;margin-bottom:14px">';
+  if (b.items.length === 0) {
+    out += '<p class="mf-empty-simple">Aún no agregas productos. Búscalos abajo 👇</p>';
+  } else {
+    out += b.items.map(function(it, i){
+      var precioLabel = it.cortesia ? "Cortesía · $0" : money(it.precio) + " c/u";
+      var lineLabel = money((it.cortesia ? 0 : it.precio) * it.cantidad);
+      return '<div class="mf-cart-row">' +
+        '<div style="flex:1;min-width:0"><div class="mf-cart-name">' + escapeHtml(it.nombre) + '</div><div class="mf-cart-price">' + precioLabel + '</div></div>' +
+        '<button class="mf-cort-btn' + (it.cortesia ? ' is-active' : '') + '" data-action="toggle-cortesia" data-i="' + i + '">🎁</button>' +
+        '<div class="mf-stepper">' +
+          '<button data-action="qty-dec" data-i="' + i + '">−</button>' +
+          '<span>' + it.cantidad + '</span>' +
+          '<button data-action="qty-inc" data-i="' + i + '">＋</button>' +
+        '</div>' +
+        '<div class="mf-cart-line">' + lineLabel + '</div>' +
+      '</div>';
+    }).join("");
+  }
+  if (b.items.length > 0) {
+    out += '<div class="mf-total-bar"><span>Total venta</span><span>' + money(totalVenta(b)) + '</span></div>';
+  }
+  out += '</div>';
+
+  out += '<div class="mf-section-title">Medio de pago</div>';
+  out += '<div class="mf-medio-row">' +
+    '<div class="mf-medio-opt' + (b.medio === "efectivo" ? ' is-active' : '') + '" data-action="medio-efectivo"><span>💵</span>Efectivo</div>' +
+    '<div class="mf-medio-opt' + (b.medio === "transferencia" ? ' is-active' : '') + '" data-action="medio-transferencia"><span>🏦</span>Transferencia</div>' +
+  '</div>';
+
+  out += '<div class="mf-section-title">Agregar producto</div>';
+  out += '<input class="mf-input" id="inp-prod-search" type="text" data-bind="prod-search" value="' + escapeHtml(state.prodSearch) + '" placeholder="🔍 Buscar por nombre o código…" autocomplete="off" style="margin-bottom:12px">';
+
+  var q = (state.prodSearch || "").toLowerCase().trim();
+  var lista = CATALOGO;
+  if (q) lista = CATALOGO.filter(function(p){ return p.nombre.toLowerCase().indexOf(q) !== -1 || p.sku.toLowerCase().indexOf(q) !== -1; });
+  lista = lista.slice(0, q ? 40 : 60);
+  out += lista.map(function(p){
+    return '<div class="mf-prod-row" data-action="agregar-producto" data-sku="' + escapeHtml(p.sku) + '">' +
+      '<div style="flex:1;min-width:0"><div class="mf-prod-name">' + escapeHtml(p.nombre) + '</div><div class="mf-prod-sku">' + escapeHtml(p.sku) + '</div></div>' +
+      '<div class="mf-prod-price">' + money(p.precio) + '</div>' +
+      '<button class="mf-prod-add" data-action="agregar-producto" data-sku="' + escapeHtml(p.sku) + '">＋</button>' +
+    '</div>';
+  }).join("");
+
+  return out;
+}
+
+function renderInforme(){
+  var f = feriaActiva();
+  var out = "";
+  if (f) {
+    var t = totalesFeria(f);
+    out += '<div class="mf-hero-brown">' +
+      '<div class="mf-informe-eyebrow">📍 ' + escapeHtml((f.lugar || "Feria") + " · " + fechaLinda(f.fecha)) + '</div>' +
+      '<div class="mf-informe-total">' + money(t.totalDia) + '</div>' +
+      '<div class="mf-informe-caption">Total vendido en el día · ' + t.nVentas + ' ventas</div>' +
+    '</div>';
+
+    out += '<div class="mf-section-title">💵 Cierre de caja (efectivo)</div>';
+    out += '<div class="mf-card mf-card--list-loose" style="margin-bottom:14px">' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Base de caja inicial</div><div class="mf-kv-value">' + money(t.base) + '</div></div>' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">＋ Ventas en efectivo</div><div class="mf-kv-value">' + money(t.efectivo) + '</div></div>' +
+      '<div class="mf-total-bar" style="margin:12px 0"><span>Debe haber en caja</span><span>' + money(t.efectivoEnCaja) + '</span></div>' +
+    '</div>';
+
+    out += '<div class="mf-section-title">🏦 Transferencias por validar</div>';
+    out += '<div class="mf-card mf-card--list-loose" style="margin-bottom:14px">';
+    if (t.transferencias.length === 0) {
+      out += '<p class="mf-empty-simple" style="margin:8px 0">No hubo transferencias.</p>';
+    } else {
+      out += t.transferencias.map(function(tr){
+        return '<div class="mf-kv-row"><div class="mf-kv-label"><b>#' + tr.num + '</b> ' + escapeHtml(tr.cliente || "Sin nombre") + '</div><div class="mf-kv-value">' + money(tr.total) + '</div></div>';
+      }).join("");
+      out += '<div class="mf-total-bar mf-total-bar--sm" style="margin-top:12px"><span>Total transferencias</span><span>' + money(t.transferencia) + '</span></div>';
+    }
+    out += '</div>';
+
+    out += '<div class="mf-card mf-card--list-loose">' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Productos vendidos</div><div class="mf-kv-value">' + t.unidades + '</div></div>' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Cortesías entregadas</div><div class="mf-kv-value">' + t.cortesias + '</div></div>' +
+    '</div>';
+  }
+  return out;
+}
+
+function renderHistorial(){
+  var cerradas = state.db.ferias.filter(function(f){ return f.estado === "cerrada"; }).slice().reverse();
+  var out = "";
+  if (cerradas.length === 0) {
+    out += '<div class="mf-empty mf-empty--big"><div class="mf-empty-emoji">📊</div><h3>Sin ferias cerradas</h3><p>Cuando cierres tu primera feria aparecerá aquí.</p></div>';
+  } else {
+    var gEfe = 0, gTra = 0, gTot = 0;
+    cerradas.forEach(function(f){ var t = totalesFeria(f); gEfe += t.efectivo; gTra += t.transferencia; gTot += t.totalDia; });
+    out += '<div class="mf-hero-green">' +
+      '<div style="font-size:13px;opacity:.9">Acumulado de ' + cerradas.length + ' ferias</div>' +
+      '<div style="font-family:var(--f-serif);font-size:32px;font-weight:800;text-align:center;padding:6px 0">' + money(gTot) + '</div>' +
+      statRow([{ num: money(gEfe), label: "Efectivo" }, { num: money(gTra), label: "Transferencias" }], "") +
+    '</div>';
+    out += '<div class="mf-card mf-card--list-loose" style="margin-bottom:12px">' + cerradas.map(function(f){
+      var t = totalesFeria(f);
+      return '<div class="mf-row" data-action="ver-detalle" data-id="' + f.id + '">' +
+        '<div class="mf-row-icon">🎪</div>' +
+        '<div style="flex:1;min-width:0"><div class="mf-row-title">' + escapeHtml(f.lugar || "Feria") + '</div><div class="mf-row-sub">' + escapeHtml(fechaLinda(f.fecha) + " · " + t.nVentas + " ventas") + '</div></div>' +
+        '<div style="text-align:right;flex:0 0 auto"><div class="mf-row-amount">' + money(t.totalDia) + '</div><div class="mf-row-amount-label">total del día</div></div>' +
+      '</div>';
+    }).join("") + '</div>';
+  }
+  return out;
+}
+
+function renderDetalle(){
+  var f = feriaPorId(state.feriaHistorialId);
+  var out = "";
+  if (f) {
+    var t = totalesFeria(f);
+    out += '<div class="mf-hero-brown">' +
+      '<div class="mf-informe-eyebrow">📍 ' + escapeHtml((f.lugar || "Feria") + " · " + fechaLinda(f.fecha)) + '</div>' +
+      '<div class="mf-informe-total" style="font-size:32px">' + money(t.totalDia) + '</div>' +
+      '<div class="mf-informe-caption">' + t.nVentas + ' ventas · ' + (f.estado === "cerrada" ? "Cerrada" : "Abierta") + '</div>' +
+    '</div>';
+
+    out += '<div class="mf-card mf-card--list-loose" style="margin-bottom:14px">' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Base de caja</div><div class="mf-kv-value">' + money(t.base) + '</div></div>' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Ventas efectivo</div><div class="mf-kv-value">' + money(t.efectivo) + '</div></div>' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Debe haber en caja</div><div class="mf-kv-value">' + money(t.efectivoEnCaja) + '</div></div>' +
+      '<div class="mf-kv-row"><div class="mf-kv-label">Transferencias</div><div class="mf-kv-value">' + money(t.transferencia) + '</div></div>' +
+    '</div>';
+
+    if (t.transferencias.length > 0) {
+      out += '<div class="mf-section-title">🏦 Transferencias</div>';
+      out += '<div class="mf-card mf-card--list-loose" style="margin-bottom:14px">' + t.transferencias.map(function(tr){
+        return '<div class="mf-kv-row"><div class="mf-kv-label"><b>#' + tr.num + '</b> ' + escapeHtml(tr.cliente || "Sin nombre") + '</div><div class="mf-kv-value">' + money(tr.total) + '</div></div>';
+      }).join("") + '</div>';
+    }
+
+    out += '<div class="mf-section-title">🧾 Detalle de ventas</div>';
+    out += '<div class="mf-card mf-card--list">';
+    if (f.ventas.length === 0) {
+      out += '<p class="mf-empty-simple" style="margin:8px 0">Sin ventas.</p>';
+    } else {
+      out += f.ventas.map(function(vt){
+        var badges = "";
+        if (vt.medio === "efectivo") badges += '<span class="mf-badge mf-badge--efe">Efectivo</span>';
+        else badges += '<span class="mf-badge mf-badge--tra">Transfer.</span>';
+        var lineas = vt.items.map(function(it){
+          return '<div>' + it.cantidad + '× ' + escapeHtml(it.nombre) + (it.cortesia ? ' (cortesía)' : '') + '</div>';
+        }).join("");
+        return '<div class="mf-venta-row mf-venta-row--detail" style="cursor:default">' +
+          '<div class="mf-num-badge">' + vt.num + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="font-weight:600;font-size:15px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">' + escapeHtml(vt.cliente || "Sin nombre") + badges + '</div>' +
+            '<div class="mf-venta-lineas">' + lineas + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex:0 0 auto"><div class="mf-row-amount">' + money(totalVenta(vt)) + '</div></div>' +
+        '</div>';
+      }).join("");
+    }
+    out += '</div>';
+  }
+  return out;
+}
+
+function renderMain(){
+  switch (state.vista) {
+    case "home": return renderHome();
+    case "nueva-feria": return renderNuevaFeria();
+    case "feria": return renderFeria();
+    case "nueva-venta": return renderNuevaVenta();
+    case "informe": return renderInforme();
+    case "historial": return renderHistorial();
+    case "detalle-feria": return renderDetalle();
+    default: return "";
+  }
+}
+
+function renderFooter(){
+  var v = state.vista;
+  if (v === "feria") {
+    return '<div class="mf-footer">' +
+      '<button class="mf-foot-primary" data-action="nueva-venta">＋ Nueva venta</button>' +
+      '<button class="mf-foot-secondary" data-action="cerrar-dia">Cerrar día</button>' +
+    '</div>';
+  }
+  if (v === "nueva-venta") {
+    var b = state.ventaBorrador || { items: [] };
+    var puede = b.items.length > 0;
+    var num = state.editandoVentaId ? "" : "";
+    var f = feriaActiva();
+    var n = state.editandoVentaId ? ((f.ventas.filter(function(x){ return x.id === state.editandoVentaId; })[0]) || {}).num : (f ? f.ventas.length + 1 : 1);
+    var delBtn = state.editandoVentaId ? '<button class="mf-foot-danger" data-action="borrar-venta">🗑</button>' : "";
+    return '<div class="mf-footer">' + delBtn +
+      '<button class="mf-foot-save' + (puede ? '' : ' is-disabled') + '" data-action="guardar-venta">✓ Guardar venta #' + n + '</button>' +
+    '</div>';
+  }
+  if (v === "informe") {
+    return '<div class="mf-footer">' +
+      '<button class="mf-foot-flex1 mf-foot-outline" data-action="exportar-feria-activa">⬇️ Exportar</button>' +
+      '<button class="mf-foot-flex1 mf-foot-secondary" data-action="cerrar-feria">🔒 Cerrar feria</button>' +
+    '</div>';
+  }
+  if (v === "historial") {
+    var cerradas = state.db.ferias.filter(function(f){ return f.estado === "cerrada"; });
+    if (cerradas.length === 0) return "";
+    return '<div class="mf-footer"><button class="mf-foot-flex1 mf-foot-outline" data-action="exportar-todo">⬇️ Exportar histórico completo</button></div>';
+  }
+  if (v === "detalle-feria") {
+    return '<div class="mf-footer"><button class="mf-foot-flex1 mf-foot-outline" data-action="exportar-detalle">⬇️ Exportar esta feria</button></div>';
+  }
+  return "";
+}
+
+function renderToast(){
+  if (!state.toastShow) return "";
+  return '<div class="mf-toast">' + escapeHtml(state.toastMsg) + '</div>';
+}
+
+function render(){
+  var active = document.activeElement;
+  var focusId = null, selStart = null, selEnd = null;
+  if (active && active.id && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+    focusId = active.id;
+    selStart = active.selectionStart; selEnd = active.selectionEnd;
+  }
+
+  document.getElementById("mf-header").innerHTML = renderHeader();
+  document.getElementById("mf-main").innerHTML = renderMain();
+  document.getElementById("mf-footer-slot").innerHTML = renderFooter();
+  document.getElementById("mf-toast-slot").innerHTML = renderToast();
+
+  if (focusId) {
+    var el = document.getElementById(focusId);
+    if (el) {
+      el.focus();
+      if (selStart != null && el.setSelectionRange) {
+        try { el.setSelectionRange(selStart, selEnd); } catch (e) {}
+      }
+    }
+  }
+}
+
+/* ============================================================
+   EVENTOS (delegación)
+   ============================================================ */
+document.addEventListener("click", function(e){
+  var el = e.target.closest("[data-action]");
+  if (!el) return;
+  var action = el.dataset.action;
+  switch (action) {
+    case "back": goBack(); break;
+    case "seguir-vendiendo": go("feria"); break;
+    case "abrir-feria":
+      state.nf = { fecha: hoyISO(), lugar: "", base: "" };
+      state.vista = "nueva-feria"; render();
+      break;
+    case "crear-feria": crearFeria(); break;
+    case "ver-historial": go("historial"); break;
+    case "ver-detalle": verDetalle(el.dataset.id); break;
+    case "nueva-venta": nuevaVenta(); break;
+    case "editar-venta": editarVenta(el.dataset.id); break;
+    case "cerrar-dia": go("informe"); break;
+    case "toggle-cortesia": toggleCortesia(parseInt(el.dataset.i, 10)); break;
+    case "qty-dec": cambiarQty(parseInt(el.dataset.i, 10), -1); break;
+    case "qty-inc": cambiarQty(parseInt(el.dataset.i, 10), 1); break;
+    case "medio-efectivo": setMedio("efectivo"); break;
+    case "medio-transferencia": setMedio("transferencia"); break;
+    case "agregar-producto": agregarProducto(el.dataset.sku); render(); break;
+    case "guardar-venta": guardarVenta(); break;
+    case "borrar-venta": borrarVenta(); break;
+    case "exportar-feria-activa": var fa = feriaActiva(); if (fa) exportarFeria(fa.id); break;
+    case "cerrar-feria": cerrarFeria(); break;
+    case "exportar-todo": exportarTodo(); break;
+    case "exportar-detalle": var fd = feriaPorId(state.feriaHistorialId); if (fd) exportarFeria(fd.id); break;
+  }
+});
+
+document.addEventListener("input", function(e){
+  var el = e.target;
+  var bind = el.dataset && el.dataset.bind;
+  if (!bind) return;
+  switch (bind) {
+    case "nf-fecha": state.nf.fecha = el.value; break;
+    case "nf-lugar": state.nf.lugar = el.value; break;
+    case "nf-base": state.nf.base = el.value; break;
+    case "nv-cliente": state.ventaBorrador.cliente = el.value; break;
+    case "prod-search": state.prodSearch = el.value; break;
+    default: return;
+  }
+  render();
+});
+
+/* ============================================================
+   ARRANQUE
+   ============================================================ */
+state.db = loadDB();
+state.nf = { fecha: hoyISO(), lugar: "", base: "" };
+render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("./sw.js").catch(function(){});
+  });
+}
+
+})();
+</script>
+</body>
+</html>
