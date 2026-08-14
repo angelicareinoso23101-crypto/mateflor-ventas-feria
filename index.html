@@ -349,14 +349,21 @@ function feriaPorId(id){
   state.db.ferias.forEach(function(x){ if (x.id === id) f = x; });
   return f;
 }
-function totalVenta(v){
+function subtotalVenta(v){
   return v.items.reduce(function(s, it){ return s + (it.cortesia ? 0 : it.precio) * it.cantidad; }, 0);
 }
+function descAplicado(v){
+  return Math.min(Math.max(0, v.descuento || 0), subtotalVenta(v));
+}
+function totalVenta(v){
+  return subtotalVenta(v) - descAplicado(v);
+}
 function totalesFeria(f){
-  var efectivo = 0, transferencia = 0, cortesias = 0, unidades = 0;
+  var efectivo = 0, transferencia = 0, cortesias = 0, unidades = 0, descuentos = 0;
   var transferencias = [];
   f.ventas.forEach(function(v){
     var t = totalVenta(v);
+    descuentos += descAplicado(v);
     if (v.medio === "efectivo") efectivo += t;
     else { transferencia += t; transferencias.push({ num: v.num, cliente: v.cliente, total: t }); }
     v.items.forEach(function(it){ unidades += it.cantidad; if (it.cortesia) cortesias += it.cantidad; });
@@ -364,7 +371,7 @@ function totalesFeria(f){
   var base = f.base || 0;
   return {
     efectivo: efectivo, transferencia: transferencia, nVentas: f.ventas.length,
-    cortesias: cortesias, unidades: unidades, transferencias: transferencias,
+    cortesias: cortesias, unidades: unidades, descuentos: descuentos, transferencias: transferencias,
     base: base, efectivoEnCaja: base + efectivo, totalDia: efectivo + transferencia
   };
 }
@@ -387,7 +394,7 @@ function crearFeria(){
 
 function nuevaVenta(){
   state.editandoVentaId = null;
-  state.ventaBorrador = { cliente: "", items: [], medio: "efectivo" };
+  state.ventaBorrador = { cliente: "", items: [], medio: "efectivo", descuento: 0 };
   state.prodSearch = "";
   state.vista = "nueva-venta";
   render(); window.scrollTo(0, 0);
@@ -396,7 +403,7 @@ function editarVenta(id){
   var f = feriaActiva(); var v = f && f.ventas.filter(function(x){ return x.id === id; })[0];
   if (!v) return;
   state.editandoVentaId = id;
-  state.ventaBorrador = { cliente: v.cliente, medio: v.medio, items: v.items.map(function(it){ return Object.assign({}, it); }) };
+  state.ventaBorrador = { cliente: v.cliente, medio: v.medio, items: v.items.map(function(it){ return Object.assign({}, it); }), descuento: v.descuento || 0 };
   state.prodSearch = "";
   state.vista = "nueva-venta";
   render(); window.scrollTo(0, 0);
@@ -430,10 +437,10 @@ function guardarVenta(){
   var f = state.db.ferias.filter(function(x){ return x.id === state.db.activaId; })[0];
   if (state.editandoVentaId) {
     var v = f.ventas.filter(function(x){ return x.id === state.editandoVentaId; })[0];
-    v.cliente = cliente; v.medio = b.medio; v.items = b.items;
+    v.cliente = cliente; v.medio = b.medio; v.items = b.items; v.descuento = Math.max(0, b.descuento || 0);
     toast("✅ Venta actualizada");
   } else {
-    f.ventas.push({ id: uid(), num: f.ventas.length + 1, cliente: cliente, medio: b.medio, items: b.items, ts: Date.now() });
+    f.ventas.push({ id: uid(), num: f.ventas.length + 1, cliente: cliente, medio: b.medio, items: b.items, descuento: Math.max(0, b.descuento || 0), ts: Date.now() });
     toast("✅ Venta #" + f.ventas.length + " guardada");
   }
   saveDB(state.db);
@@ -478,18 +485,20 @@ function csvCell(s){ s = (s == null ? "" : String(s)); return '"' + s.replace(/"
 function filasFeria(f){
   var rows = [];
   f.ventas.forEach(function(v){
-    v.items.forEach(function(it){
+    var desc = descAplicado(v);
+    v.items.forEach(function(it, idx){
       rows.push([
         f.fecha, f.lugar, v.num, v.cliente, it.sku, it.nombre, it.cantidad,
         it.cortesia ? 0 : it.precio, (it.cortesia ? 0 : it.precio) * it.cantidad,
-        it.cortesia ? "Sí" : "No", v.medio === "efectivo" ? "Efectivo" : "Transferencia"
+        it.cortesia ? "Sí" : "No", v.medio === "efectivo" ? "Efectivo" : "Transferencia",
+        idx === 0 ? desc : 0
       ]);
     });
   });
   return rows;
 }
 function descargarCSV(nombre, filas){
-  var cab = ["Fecha", "Lugar", "N° Venta", "Cliente", "SKU", "Producto", "Cantidad", "Precio unit.", "Total línea", "Cortesía", "Medio de pago"];
+  var cab = ["Fecha", "Lugar", "N° Venta", "Cliente", "SKU", "Producto", "Cantidad", "Precio unit.", "Total línea", "Cortesía", "Medio de pago", "Descuento venta"];
   var csv = "﻿" + [cab].concat(filas).map(function(r){ return r.map(csvCell).join(";"); }).join("\r\n");
   var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   var url = URL.createObjectURL(blob);
@@ -624,10 +633,12 @@ function renderFeria(){
         var tv = totalVenta(vt);
         var nprod = vt.items.reduce(function(s, it){ return s + it.cantidad; }, 0);
         var cort = vt.items.some(function(it){ return it.cortesia; });
+        var desc = descAplicado(vt);
         var badges = "";
         if (vt.medio === "efectivo") badges += '<span class="mf-badge mf-badge--efe">Efectivo</span>';
         else badges += '<span class="mf-badge mf-badge--tra">Transfer.</span>';
         if (cort) badges += '<span class="mf-badge mf-badge--cort">🎁 Cortesía</span>';
+        if (desc > 0) badges += '<span class="mf-badge" style="background:#f3d9d0;color:#a3402c">💸 −' + money(desc) + '</span>';
         return '<div class="mf-venta-row" data-action="editar-venta" data-id="' + vt.id + '">' +
           '<div class="mf-num-badge">' + vt.num + '</div>' +
           '<div style="flex:1;min-width:0">' +
@@ -673,6 +684,17 @@ function renderNuevaVenta(){
     out += '<div class="mf-total-bar"><span>Total venta</span><span>' + money(totalVenta(b)) + '</span></div>';
   }
   out += '</div>';
+
+  if (b.items.length > 0) {
+    out += '<div class="mf-card mf-card--pad16" style="margin-bottom:14px">' +
+      '<label style="display:block;font-weight:600;font-size:14px;margin:0 0 6px">Descuento <span style="color:var(--c-text-6);font-weight:400">(opcional, en $)</span></label>' +
+      '<input class="mf-input" id="inp-nv-descuento" type="text" inputmode="numeric" data-bind="nv-descuento" value="' + (b.descuento ? String(b.descuento) : "") + '" placeholder="Ej: 5000" autocomplete="off">';
+    if (descAplicado(b) > 0) {
+      out += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;font-size:14px"><span style="color:var(--c-text-6)">Subtotal productos</span><span style="font-weight:600">' + money(subtotalVenta(b)) + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;font-size:14px;color:#a3402c"><span style="font-weight:600">Descuento</span><span style="font-weight:700">− ' + money(descAplicado(b)) + '</span></div>';
+    }
+    out += '</div>';
+  }
 
   out += '<div class="mf-section-title">Medio de pago</div>';
   out += '<div class="mf-medio-row">' +
@@ -731,6 +753,7 @@ function renderInforme(){
     out += '<div class="mf-card mf-card--list-loose">' +
       '<div class="mf-kv-row"><div class="mf-kv-label">Productos vendidos</div><div class="mf-kv-value">' + t.unidades + '</div></div>' +
       '<div class="mf-kv-row"><div class="mf-kv-label">Cortesías entregadas</div><div class="mf-kv-value">' + t.cortesias + '</div></div>' +
+      (t.descuentos > 0 ? '<div class="mf-kv-row"><div class="mf-kv-label" style="color:#a3402c">💸 Descuentos del día</div><div class="mf-kv-value" style="color:#a3402c">' + money(t.descuentos) + '</div></div>' : "") +
     '</div>';
   }
   return out;
@@ -935,6 +958,7 @@ document.addEventListener("input", function(e){
     case "nf-lugar": state.nf.lugar = el.value; break;
     case "nf-base": state.nf.base = el.value; break;
     case "nv-cliente": state.ventaBorrador.cliente = el.value; break;
+    case "nv-descuento": state.ventaBorrador.descuento = parseInt(String(el.value).replace(/[^0-9]/g, ""), 10) || 0; break;
     case "prod-search": state.prodSearch = el.value; break;
     default: return;
   }
