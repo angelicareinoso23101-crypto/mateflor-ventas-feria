@@ -2,7 +2,7 @@
    signal at the market. First load needs a connection (to fetch the app
    and the Google Fonts); everything after that is served from cache. */
 
-var CACHE_VERSION = "v5";
+var CACHE_VERSION = "v6";
 var PRECACHE = "mateflor-precache-" + CACHE_VERSION;
 var RUNTIME = "mateflor-runtime-" + CACHE_VERSION;
 
